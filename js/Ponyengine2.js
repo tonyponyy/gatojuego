@@ -205,7 +205,7 @@ imageQueue = 3;
 
 enemy_1 = new Image();
 enemy_1.onload=onLoadImage;
-enemy_1.src="img/canica.png";
+enemy_1.src="img/enemy1.png";
 
 
 image_player = new Image();
@@ -379,7 +379,7 @@ function colision_enemy(x,y,enemy){
      parseInt(y/constants.TILES_HEIGHT)*constants.MAP_COLUMNS
     ]
     
-    if ( tilesettings.solid.indexOf(tile) != -1){
+    if ( tilesettings.solid.indexOf(tile) != -1 || tile==21 || tile == 22 ) {
      return true;
      }else{
      return false;        
