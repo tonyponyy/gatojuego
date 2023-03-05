@@ -200,6 +200,71 @@ window.addEventListener(
 
     imageQueue = 3;
 
+    //paralax
+    field_paralax1_img = new Image();
+    field_paralax1_img.onload = onLoadImage;
+    field_paralax1_img.src = "img/paralax/field_paralax1.png";
+    field_paralax2_img = new Image();
+    field_paralax2_img.onload = onLoadImage;
+    field_paralax2_img.src = "img/paralax/field_paralax2.png";
+
+    desert_paralax1_img = new Image();
+    desert_paralax1_img.onload = onLoadImage;
+    desert_paralax1_img.src = "img/paralax/desert_paralax1.png";
+    desert_paralax2_img = new Image();
+    desert_paralax2_img.onload = onLoadImage;
+    desert_paralax2_img.src = "img/paralax/desert_paralax2.png";
+
+    ruins_paralax1_img = new Image();
+    ruins_paralax1_img.onload = onLoadImage;
+    ruins_paralax1_img.src = "img/paralax/ruins_paralax1.png";
+    ruins_paralax2_img = new Image();
+    ruins_paralax2_img.onload = onLoadImage;
+    ruins_paralax2_img.src = "img/paralax/ruins_paralax2.png";
+
+    snow_paralax1_img = new Image();
+    snow_paralax1_img.onload = onLoadImage;
+    snow_paralax1_img.src = "img/paralax/snow_paralax1.png";
+    snow_paralax2_img = new Image();
+    snow_paralax2_img.onload = onLoadImage;
+    snow_paralax2_img.src = "img/paralax/snow_paralax2.png";
+
+    // tiles_img
+    //to_do añadir imagenes en la carpeta
+    field_tiles_img = new Image();
+    field_tiles_img.onload = onLoadImage;
+    field_tiles_img.src = "img/environment/field_tiles.png";
+
+    desert_tiles_img = new Image();
+    desert_tiles_img.onload = onLoadImage;
+    desert_tiles_img.src = "img/environment/desert_tiles.png";
+
+    ruins_tiles_img = new Image();
+    ruins_tiles_img.onload = onLoadImage;
+    ruins_tiles_img.src = "img/environment/ruins_tiles.png";
+
+    snow_tiles_img = new Image();
+    snow_tiles_img.onload = onLoadImage;
+    snow_tiles_img.src = "img/environment/snow_tiles.png";
+
+    // sky_img
+    sunny_sky_img = new Image();
+    sunny_sky_img.onload = onLoadImage;
+    sunny_sky_img.src = "img/sky/sunny_sky.png";
+
+    night_sky_img = new Image();
+    night_sky_img.onload = onLoadImage;
+    night_sky_img.src = "img/sky/night_sky.png";
+
+    cloudy_sky_img = new Image();
+    cloudy_sky_img.onload = onLoadImage;
+    cloudy_sky_img.src = "img/sky/cloudy_sky.png";
+
+    afternoon_sky_img = new Image();
+    afternoon_sky_img.onload = onLoadImage;
+    afternoon_sky_img.src = "img/sky/afternoon_sky.png";
+
+    //
     enemy_1 = new Image();
     enemy_1.onload = onLoadImage;
     enemy_1.src = "img/enemy1.png";
@@ -259,7 +324,6 @@ window.addEventListener(
   false
 );
 
-//var particles_array;
 var onLoadImage = () => {
   imageQueue--;
   if (imageQueue == 0) {
@@ -268,10 +332,24 @@ var onLoadImage = () => {
   }
 };
 
+var game_load;
+
 var startGame = () => {
+  map_string =
+    "0$120,24,0$11,16,0$18,32,0$8,1$14,19$2,18$2,1$2,19$2,18$2,19$2,1$14,0$13,1,0$12,1,0$26,1,0$5,10$5,0$2,1,0$26,1,10$5,1$5,10$2,1,0$26,1$7,0$3,1$4,0$533,11,0$79,22,0$39,1,22,0$38,1$2,22,0$15,25,13,0,31$2,0,13,0$15,1$3,22,0$7,21,22,12$14,0$13,1$4,22,0$5,21,1$2,22,0$2,21,1$3,22,0,12$4,0,25$2,0$7,23,0$3,1$5,22,28,29,30,21,1$4,2$2,1$5,22,0$2,12$2,21,2$3,15$5,2$5,1$6,2$3,1$6,2$11,1$374";
+  game_load = new GameLoad(1, 1, 2, 4, map_string, 40, 40);
+  constants.MAP_COLUMNS = game_load.width;
+  constants.MAP_ROWS = game_load.height;
+  map = [...game_load.map_tiles];
+  player.jetpack_fuel = game_load.fuel;
+  //setting_img
+  image_fondo = game_load.sky_img;
+  image_tiles = game_load.tiles_img;
+  paralax1 = game_load.paralax1_img;
+  paralax2 = game_load.paralax2_img;
+
   party_settings.restart = false;
   frameCounter = 0;
-  map = [...downloaded_map];
   party_settings.cleared = false;
   party_settings.time_finish = false;
   party_settings.animation_loop = null;
