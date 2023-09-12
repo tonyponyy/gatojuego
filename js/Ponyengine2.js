@@ -12,7 +12,8 @@ function fullscreen() {
 
 canvas.addEventListener("click", fullscreen);
 //
-
+var snow_array = []
+var snow;
 var col_down = false;
 var col_left = false;
 var col_up = false;
@@ -25,15 +26,28 @@ var physics = {
   gravity: 1,
   friction: 0.5,
   friction_hielo: 0.05,
+  sliding_friction: 0.05,
   friction_aire: 0.3,
 };
 
 downloaded_map = TileMaps.test_pruebas.layers[0].data;
 map = [];
 var tilesettings = {
-  solid: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 14, 15, 19, 20],
-  dead: [10],
+  solid: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13,16,17,18,19,26,28,35,36,33],
+  dead: [20,21,22,23],
 };
+
+var tile_names = {
+  left_ramp:14,
+  right_ramp:15,
+  spike_up:20,
+  spike_down:22,
+  skipe_left:23,
+  spike_right:24,
+  boton_1:25,
+  boton_2:26
+}
+
 
 var party_settings = {
   cleared: false,
@@ -62,11 +76,17 @@ var camera = {
   side: 1.5,
 };
 var player = {
+  cadencia:20,
+  cadencia_timer: 0,
+  sliding:false,
+  killfalling:false,
+  hot:false,
   x: 0,
   y: 0,
   vx: 0,
   vy: 0,
   limit: 8,
+  limit_jetpack:9,
   landed: false,
   orientation: true,
   jumpduration_set: 24,
@@ -87,7 +107,9 @@ var player = {
   spring_y: 0,
   canjump: true,
   jetpack: 0,
+  is_jetpack: false,
   canjetpack: true,
+  atacking: false,
   sandevistan: false,
   spring() {
     if (this.springing && this.spring_duration != 0) {
@@ -162,7 +184,7 @@ var refreshCamera = () => {
     constants.TILES_WIDTH / 2;
 
   camera.y =
-    player.y - constants.CANVAS_HEIGHT / 2 + constants.TILES_HEIGHT / 2;
+    player.y - constants.CANVAS_HEIGHT / 1.7 + constants.TILES_HEIGHT / 2;
   if (camera.y < 0) camera.y = 0;
   if (camera.x < 0) camera.x = 0;
 
@@ -191,7 +213,13 @@ var enemys_array = [];
 window.addEventListener(
   "load",
   function () {
-    canvas = document.getElementById("canvas");
+    load_params();
+  },
+  false
+);
+
+function load_params(){
+  canvas = document.getElementById("canvas");
     ctx = canvas.getContext("2d");
     canvas.width = constants.CANVAS_WIDTH;
     canvas.height = constants.CANVAS_HEIGHT;
@@ -320,46 +348,64 @@ window.addEventListener(
     paralax2 = new Image();
     paralax2.onload = onLoadImage;
     paralax2.src = "img/parallax2.png";
-  },
-  false
-);
+
+    snowflake_img = new Image();
+    snowflake_img.onload = onLoadImage;
+    snowflake_img.src = "img/snowflake.png";
+
+    snowflake_img2 = new Image();
+    snowflake_img2.onload = onLoadImage;
+    snowflake_img2.src = "img/snowflake2.png";
+
+    hitbox_img = new Image();
+    hitbox_img.onload = onLoadImage;
+    hitbox_img.src = "img/hitbox.png";
+
+
+    splash_img = new Image();
+    splash_img.onload = onLoadImage;
+    splash_img.src = "img/splash.png";
+
+    ice_piece_img = new Image();
+    ice_piece_img.onload = onLoadImage;
+    ice_piece_img.src = "img/ice_piece.png";
+
+    ice_piece2_img = new Image();
+    ice_piece2_img.onload = onLoadImage;
+    ice_piece2_img.src = "img/ice_piece2.png";
+
+    ice_piece3_img = new Image();
+    ice_piece3_img.onload = onLoadImage;
+    ice_piece3_img.src = "img/ice_piece3.png";
+
+    jetpack_bar_img = new Image();
+    jetpack_bar_img.onload = onLoadImage;
+    jetpack_bar_img.src = "img/jetpackbar.png";
+
+    bomb_img = new Image();
+    bomb_img.onload = onLoadImage;
+    bomb_img.src = "img/bomb.png";
+ 
+ 
+    image_explosion = new Image();
+    image_explosion.onload = onLoadImage;
+    image_explosion.src = "img/exp.png";
+    
+}
+
+
+
 
 var onLoadImage = () => {
   imageQueue--;
   if (imageQueue == 0) {
-    startGame();
-    loop();
+    select_scene()
   }
 };
 
-var game_load;
 
-var startGame = () => {
-  map_string =
-    "0$120,24,0$11,16,0$18,32,0$8,1$14,19$2,18$2,1$2,19$2,18$2,19$2,1$14,0$13,1,0$12,1,0$26,1,0$5,10$5,0$2,1,0$26,1,10$5,1$5,10$2,1,0$26,1$7,0$3,1$4,0$533,11,0$79,22,0$39,1,22,0$38,1$2,22,0$15,25,13,0,31$2,0,13,0$15,1$3,22,0$7,21,22,12$14,0$13,1$4,22,0$5,21,1$2,22,0$2,21,1$3,22,0,12$4,0,25$2,0$7,23,0$3,1$5,22,28,29,30,21,1$4,2$2,1$5,22,0$2,12$2,21,2$3,15$5,2$5,1$6,2$3,1$6,2$11,1$374";
-  game_load = new GameLoad(1, 1, 2, 4, map_string, 40, 40);
-  constants.MAP_COLUMNS = game_load.width;
-  constants.MAP_ROWS = game_load.height;
-  map = [...game_load.map_tiles];
-  player.jetpack_fuel = game_load.fuel;
-  //setting_img
-  image_fondo = game_load.sky_img;
-  image_tiles = game_load.tiles_img;
-  paralax1 = game_load.paralax1_img;
-  paralax2 = game_load.paralax2_img;
 
-  party_settings.restart = false;
-  frameCounter = 0;
-  party_settings.cleared = false;
-  party_settings.time_finish = false;
-  party_settings.animation_loop = null;
-  player.alive = true;
-  player_cor = getTileCordenades(map.indexOf(11));
-  player.x = player_cor.x;
-  player.y = player_cor.y;
-  console.log("restart ?" + party_settings.restart);
-  fadeOut();
-};
+
 
 diff = parseInt(+player.x + canvas.width / 2 + camera.x);
 
@@ -379,6 +425,24 @@ var paintPlayer = () => {
   if (player.jumping || !player.canjump) {
     frame = (5 + (parseInt(frameCounter / 8) % 2)) * 32;
   }
+
+  if (player.atacking){
+    if (player.cadencia_timer <= frameCounter){
+    frame = (15 + (parseInt(frameCounter / 8) % 4)) * 32;
+    x_force = player.orientation ? 15:-15
+    bomb = new particula(bomb_img, player.x, player.y, x_force, -10, 400, true,2);
+    particles_array.push(bomb);
+    player.cadencia_timer = frameCounter+player.cadencia
+  }
+  }
+  if (player.killfalling){
+    frame = (20 + (parseInt(frameCounter / 8) % 2)) * 32;
+  }
+  if (player.sliding){
+    frame = (23 + (parseInt(frameCounter / 8) % 2)) * 32;
+  }
+
+
   //faltan imagenes de la caida
 
   if (player.orientation) {
@@ -459,14 +523,18 @@ function getTilePosition(x, y) {
     parseInt(y / constants.TILES_HEIGHT) * constants.MAP_COLUMNS);
 }
 
+
 function getTileCordenades(pos) {
-  r = {
-    y: parseInt(pos / constants.MAP_ROWS) * constants.TILES_HEIGHT,
-    x: parseInt(pos % constants.MAP_COLUMNS) * constants.TILES_WIDTH,
+  const r = {
+    x: (pos % constants.MAP_COLUMNS) * constants.TILES_WIDTH,
+    y: Math.floor(pos / constants.MAP_COLUMNS) * constants.TILES_HEIGHT,
   };
 
   return r;
 }
+
+
+
 
 function sandevistan(frame, x, y, color, invert) {
   if (frameCounter % 4 == 0) {
@@ -482,165 +550,79 @@ function sandevistan(frame, x, y, color, invert) {
   }
 }
 
-//pv = 145
-function loop() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  paintBackBackground(image_fondo);
-  drawParallax(paralax1, 60, 12);
-  drawParallax(paralax2, 145, 8);
-  paintMap();
 
-  for (let i = 0; i < sandevistan_array.length; i++) {
-    sandevistan_array[i].tiempo--;
-    sandevistan_array[i].mostrar();
-    if (sandevistan_array[i].tiempo <= 0) {
-      sandevistan_array.splice(i, 1);
-    }
-  }
-
-  for (let i = 0; i < enemys_array.length; i++) {
-    enemys_array[i].mostrar();
-    enemys_array[i].move();
-    enemys_array[i].check_player();
-  }
-
-  if (player.alive) {
-    fisicasplayer();
-    paintPlayer();
-  }
-
-  if (player.alive) {
-    if (keysDown[37]) {
-      move("left");
-      camera.side += 0.05;
-    } else if (keysDown[39]) {
-      move("right");
-      camera.side -= 0.05;
-    }
-    if (keysDown[38]) {
-      if (
-        getTile(player.x, player.y) != 23 &&
-        getTile(player.x, player.y) != 24
-      )
-        move("jump");
-    } else if (keysDown[32]) {
-      move("jetpack");
-    }
-    if (keysDown[65]) {
-      move("brick");
-    }
-  }
-
-  if (player.y < 0) {
-    ctx.drawImage(
-      arrow_img,
-      parseInt(player.x - camera.x),
-      parseInt(-player.y / 4)
-    );
-  }
-
-  for (let i = 0; i < particles_array.length; i++) {
-    particles_array[i].mostrar();
-    particles_array[i].fisicas2();
-    if (particles_array[i].tiempo <= 0) {
-      particles_array.splice(i, 1);
-    }
-  }
-  if (party_settings.cleared == false) {
-    refreshCamera();
-  }
-
-  //si el jugador gana
-  if (party_settings.cleared == true && !party_settings.time_finish) {
-    party_settings.time_finish = frameCounter;
-  }
-  if (party_settings.cleared == true) {
-    menu_x = parseInt(canvas.width / 2 - winner_img.width / 2);
-    menu_y = parseInt(canvas.height / 2 - winner_img.height / 2);
-    time =
-      ("00" + parseInt(party_settings.time_finish / 3600)).slice(-2) +
-      ":" +
-      ("00" + (parseInt(party_settings.time_finish / 60) % 60)).slice(-2) +
-      ":" +
-      ("00" + parseInt((party_settings.time_finish % 60) * 1.66)).slice(-2);
-
-    ctx.drawImage(winner_img, menu_x, menu_y);
-    print_text("congratulations", menu_x + 40, menu_y + 30);
-    print_text("new record !!", menu_x + 60, menu_y + 40);
-    print_text(time, menu_x + 70, menu_y + 55);
-    print_text("actual record:" + time, menu_x + 10, menu_y + 110);
-    print_text("back to menu", menu_x + 20, menu_y + 120);
-  }
-  //pulsar r para reset partida
-  if (keysDown[82]) {
-    party_settings.restart = true;
-  }
-  frameCounter++;
-  transition();
-
-  if (party_settings.restart) {
-    startGame();
-  }
-
-  party_settings.animation_loop = window.requestAnimationFrame(loop);
-}
 
 function paintBackBackground(image) {
   ctx.fillStyle = ctx.createPattern(image, "repeat");
   ctx.fillRect(0, 0, constants.CANVAS_WIDTH, constants.CANVAS_HEIGHT);
 }
 var temp = 8;
+
 var paintMap = () => {
-  width = 40;
-  height = 40;
-  t_width = 48;
-  t_height = 48;
+  var width = constants.MAP_ROWS;
+  var height = constants.MAP_COLUMNS;
+  var t_width = 48;
+  var t_height = 48;
+  var sum = 0;
+  var counter = 0;
 
-  var colum_start = parseInt(camera.y / t_height) * width;
-  var colum_end =
-    parseInt(camera.y / t_height) * width +
-    1 +
-    parseInt(constants.CANVAS_HEIGHT / t_height) * height * 2;
-  var fila_start = parseInt(camera.x / t_width) * width;
-  var fila_end = parseInt(camera.x / t_width) * width;
+// Calcula las columnas que deben dibujarse en función de la cámara
+var column_start = Math.max(0, Math.floor(camera.x / constants.TILES_WIDTH));
+var column_end = Math.min(constants.MAP_COLUMNS, Math.ceil((camera.x + constants.CANVAS_WIDTH) / constants.TILES_WIDTH));
 
-  sum = 0;
-  counter = 0;
+// Calcula las filas que deben dibujarse en función de la cámara
+var row_start = Math.max(0, Math.floor(camera.y / constants.TILES_HEIGHT));
+var row_end = Math.min(constants.MAP_ROWS, Math.ceil((camera.y + constants.CANVAS_HEIGHT) / constants.TILES_HEIGHT));
 
-  for (i = colum_start; i < colum_end; i++) {
-    if (
-      i % width <
-        parseInt(constants.CANVAS_WIDTH / t_width) +
-          parseInt(camera.x / t_width) +
-          1 &&
-      i % width > parseInt(camera.x / t_width) - 1
-    ) {
-      if (map[i] != 0 && map[i] != null) {
-        ctx.drawImage(
-          image_tiles,
-          (map[i] - 1) * t_height,
-          0,
-          t_width,
-          t_height,
-          parseInt((i % width) * t_width - camera.x),
-          parseInt(parseInt(i / width) * t_width - camera.y),
-          t_width,
-          t_height
-        );
-        sum++;
+var sum = 0;
+var waveAmplitude = 1; // Ajusta el valor según la intensidad deseada
+
+
+
+// Itera a través de las filas y columnas necesarias
+for (var row = row_start; row < row_end; row++) {
+  for (var col = column_start; col < column_end; col++) {
+    var tileIndex = row * constants.MAP_COLUMNS + col;
+    if (map[tileIndex] !== 0) {
+      var tileX = col * constants.TILES_WIDTH - camera.x;
+
+      // Aplicar ondulación solo cuando debug esté activado
+      var tileY = row * constants.TILES_HEIGHT - camera.y;
+      if (player.hot) {
+        tileY += waveAmplitude * Math.sin(tileX / 20); // Ajusta la frecuencia de la ondulación
       }
+
+      ctx.drawImage(
+        image_tiles,
+        (map[tileIndex] - 1) * constants.TILES_HEIGHT,
+        0,
+        constants.TILES_WIDTH,
+        constants.TILES_HEIGHT,
+        parseInt(tileX),
+        parseInt(tileY),
+        constants.TILES_WIDTH,
+        constants.TILES_HEIGHT
+      );
+      sum++;
     }
   }
+}
+  
 
-  print_text(sum + "%", 0, 60);
-  print_text("Vy player :" + player.vy, 0, 80);
-  print_text("Vx player :" + player.vx, 0, 100);
-  print_text("Is jumping? :" + player.jumping, 0, 120);
-
-  if (counter % fila_start == 0) {
-    i = i + width;
+  if (debug) {
+    print_text("TILES DRAWN: " + sum, 0, 60);
+    print_text("Vy player: " + player.vy, 0, 80);
+    print_text("Vx player: " + player.vx, 0, 100);
+    print_text("Is jumping? " + player.jumping, 0, 120);
   }
+
+  /*
+  if (counter % row_start == 0) {
+    i += width;
+    console.log("w")
+  }*/
 };
+
 
 //teclas
 var keysDown = new Array(256);
@@ -680,12 +662,19 @@ var move = (e) => {
       break;
     case "jetpack":
       if (player.canjetpack && player.jetpack_fuel > 0) {
+        player.is_jetpack = true;
         player.jetpack -= 3;
         player.jetpack_fuel -= 0.1;
+        rect_x = player.orientation ? -12:24;
+        rect_y = 0;
+        if (player.sliding){
+          rect_y = -20
+          rect_x =  player.orientation ? player.orientation -20: player.orientation +30
+        }
         part = new particula(
           mini,
-          player.x + 8,
-          player.y + 34,
+          player.x + rect_x,
+          player.y + 34+rect_y,
           -player.vx,
           player.vy + Math.random() * 5,
           6,
@@ -698,14 +687,29 @@ var move = (e) => {
       }
       break;
     case "brick":
-      map[getTilePosition(player.x + 48, player.y)] = 1;
+      map[getTilePosition(player.x + 48, player.y)] = 33;
       break;
-
+      case "attack":
+      player.atacking = true
+      break;
     default:
       break;
   }
 };
 dif = 6;
+function hitbox_player(down=false){
+  var x_rectificacion = player.orientation ? 42: -42
+    var y_rectification = 16
+    if (down){
+      x_rectificacion = 0
+      y_rectification = +62
+    }
+    hit_x= parseInt(player.x+x_rectificacion)
+    hit_y= parseInt(player.y+y_rectification)
+
+  hitbox_array.push(new Hitbox(hit_x,hit_y,1))
+}
+
 
 var fisicasplayer = () => {
   var col_left = false;
@@ -714,6 +718,14 @@ var fisicasplayer = () => {
   var col_down = false;
   width = 48;
   height = 48;
+
+  if ( player.killfalling){
+    hitbox_player(true) 
+  }
+  if ( player.sliding){
+    hitbox_player()
+  }
+   
 
   if (colisionPlayer(0, -32)) {
     col_up = true;
@@ -792,6 +804,7 @@ var fisicasplayer = () => {
   }
 
   //debugger
+  if (debug){
   print_text("fuel :" + parseInt(player.jetpack_fuel) + "%", 0, 0);
   print_text("down :" + col_down, 0, 140);
   print_text("up :" + col_up, 0, 160);
@@ -807,97 +820,121 @@ var fisicasplayer = () => {
       parseInt((frameCounter % 60) * 1.66),
     0,
     240
-  );
+  );}
 
   //limitadores
+  if (player.is_jetpack && player.sliding){
+    limit = player.limit_jetpack
+    if (player.vx > 9 || player.vx<-9){
+      player.hot = true
+    }
+   
+  }else{
+    limit = player.limit
+    player.hot = false
+  }
 
   if (player.spring_y < -20) {
     player.spring_y = -20;
   }
 
-  if (player.vy > player.limit) {
-    player.vy = player.limit;
+  if (player.vy > limit) {
+    player.vy = limit;
   }
-  if (player.vy < -player.limit) {
-    player.vy = -player.limit;
+  if (player.vy < -limit) {
+    player.vy = -limit;
   }
-  if (player.vx > player.limit) {
-    player.vx = player.limit;
+  if (player.vx > limit) {
+    player.vx = limit;
   }
-  if (player.vx < -player.limit) {
-    player.vx = -player.limit;
+  if (player.vx < -limit) {
+    player.vx = -limit;
   }
   if (player.vx > -0.4 && player.vx < 0.4) {
     player.vx = 0;
   }
 
   //cintas
-  if (getTile(player.x, player.y + 32) == 14 && !col_left) {
+  if (getTile(player.x, player.y + 32) == 35 && !col_left) {
     player.vx = player.vx + 4;
   }
-  if (getTile(player.x, player.y + 32) == 15 && !col_right) {
+  if (getTile(player.x, player.y + 32) == 36 && !col_right) {
     player.vx = player.vx - 4;
   }
 
   // clicka botones
 
-  if (getTile(player.x, player.y) == 16 && player.canclick) {
+  if ((getTile(player.x, player.y) == 24 || getTile(player.x, player.y) == 25)  && player.canclick) {
+    click_status = getTile(player.x, player.y)
+    click_status = click_status == 24 ? 25:24;
+    map[getTilePosition(player.x, player.y)] = click_status
     player.clicked = true;
   }
   if (player.clicked) {
     player.click();
   }
 
-  if (getTile(player.x, player.y) == 13) {
+  if (getTile(player.x, player.y) == 30) {
     player.springing = true;
   }
 
   //porta magica
   if (
-    getTile(player.x, player.y) == 23 &&
+    getTile(player.x, player.y) == 31 &&
+    
     player.candoor &&
-    map.indexOf(24) != -1 &&
+    map.indexOf(32) != -1 &&
     keysDown[38] != 0
   ) {
+    console.log("puerta a")
+     player.jumping = false
+     player.canjump= false
     player.candoor = false;
     closedoor();
-    door_cor = getTileCordenades(map.indexOf(24));
+    door_cor = getTileCordenades(map.indexOf(32));
     fadeOut();
-    player.x = door_cor.x;
+    player.x = door_cor.x+16;
     player.y = door_cor.y;
   }
   //porta magica
   if (
-    getTile(player.x, player.y) == 24 &&
+    getTile(player.x, player.y) == 32 &&
     player.candoor &&
-    map.indexOf(23) != -1 &&
+    map.indexOf(31) != -1 &&
     keysDown[38] != 0
   ) {
+    console.log("puerta b")
+     player.jumping = false
+     player.canjump= false
     player.candoor = false;
     closedoor();
-    door_cor = getTileCordenades(map.indexOf(23));
+    door_cor = getTileCordenades(map.indexOf(31));
     fadeOut();
-    player.x = door_cor.x;
+    player.x = door_cor.x+16;
     player.y = door_cor.y;
   }
 
-  if (getTile(player.x, player.y) == 31 && player.jetpack_fuel != 100) {
+  if (getTile(player.x, player.y) == 43 && player.jetpack_fuel != 100) {
     player.jetpack_fuel = 100;
     map[getTilePosition(player.x, player.y)] = 0;
   }
   // win
-  if (getTile(player.x, player.y) == 32) {
-    map[getTilePosition(player.x, player.y)] = 33;
+  if (getTile(player.x, player.y) == 44) {
+    map[getTilePosition(player.x, player.y)] = 44;
     win();
   }
 
   //aplicamos inercia
-  friction = physics.friction;
+  if (!player.sliding){
+    friction = physics.friction;
+  }else{
+    friction = physics.sliding_friction
+  }
 
   if (!col_down) {
     friction = physics.friction_aire;
   } else {
-    if (getTile(player.x, player.y + 32) == 12) {
+    if (getTile(player.x, player.y + 32) == 33) {
       friction = physics.friction_hielo;
     }
   }
@@ -910,13 +947,23 @@ var fisicasplayer = () => {
   }
 
   player.y += player.spring_y;
+/*
+const tile14 = 14;
+const tile15 = 15;
+let ramp_stuck = getTile(player.x, player.y - 3) === tile14 || getTile(player.x, player.y - 3) === tile15;
+
+if (ramp_stuck) {
+  while (getTile(player.x, player.y - 3) === tile14 || getTile(player.x, player.y - 3) === tile15) {
+    player.y -= 1;
+  }
+}*/
 
   rampa_derecha =
-    getTile(player.x + 12, player.y + ((player.x + 12) % 48)) == 21
+    getTile(player.x + 12, player.y + ((player.x + 12) % 48)) == 14
       ? true
       : false;
   rampa_izquierda =
-    getTile(player.x + 12, player.y + (48 - ((player.x + 12) % 48))) == 22
+    getTile(player.x + 12, player.y + (48 - ((player.x + 11) % 48))) == 15
       ? true
       : false;
 
@@ -933,6 +980,7 @@ var fisicasplayer = () => {
 
   if (rampa_derecha) {
     player.canjump = true;
+    player.landed = true;
     if (player.vx < 0) {
       player.x += player.vx;
       player.y -= player.vx;
@@ -946,6 +994,7 @@ var fisicasplayer = () => {
 
   if (rampa_izquierda) {
     player.canjump = true;
+    player.landed = true;
     if (player.vx < 0) {
       player.x += player.vx / 2;
       player.y += player.vx / 2;
@@ -954,6 +1003,18 @@ var fisicasplayer = () => {
       player.y += player.vx;
     }
   }
+
+    //quitar el estado de killerjump
+    if (player.killfalling && (col_down || rampa_derecha || rampa_izquierda)){
+      player.killfalling = false
+    }
+    //quitar el estado de sliding
+    if (player.sliding && (player.vx ==0 )){
+      player.sliding = false;
+    }
+
+
+
 };
 
 function death() {
@@ -984,10 +1045,10 @@ function closedoor() {
 
 function tileswitcher() {
   for (let i = 0; i < map.length; i++) {
-    if (map[i] == 19 || map[i] == 20) {
-      map[i] = map[i] - 2;
-    } else if (map[i] == 17 || map[i] == 18) {
-      map[i] = map[i] + 2;
+    if (map[i] == 26 || map[i] == 28) {
+      map[i] = map[i] + 1;
+    } else if (map[i] == 27 || map[i] == 29) {
+      map[i] = map[i] - 1;
     }
   }
 }
@@ -1104,6 +1165,7 @@ function fadeOut() {
 }
 function win() {
   party_settings.cleared = true;
+  r = getRandomInt(12,34)
   star = new particula(star_img, player.x, player.y, 12, 12, 400, false);
   particles_array.push(star);
   star = new particula(star_img, player.x, player.y, -12, 12, 400, false);
@@ -1131,4 +1193,4 @@ function show_colision(x, y, w, h, color) {
     ctx.stroke();
   }
 }
-var debug = true;
+var debug = false;

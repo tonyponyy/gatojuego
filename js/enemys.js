@@ -10,7 +10,7 @@ class enemy {
   mostrar() {
     var enemys = [0, enemy_1];
     frames = enemys[this.type].width / 32;
-    frame = parseInt((frameCounter / 7 + this.seed) % frames);
+    let frame = parseInt((frameCounter / 7 + this.seed) % frames);
     if (this.orientation) {
       ctx.drawImage(
         enemys[this.type],
@@ -59,6 +59,40 @@ class enemy {
   kill() {
     enemys_array.pop(enemys_array.indexOf(this));
   }
+  check_colision(){
+    for (let i = 0; i < hitbox_array.length; i++) {
+      if (hitbox_array[i] !=false){
+      let hit_x = hitbox_array[i].x;
+      let hit_y = hitbox_array[i].y;
+
+      var offset = !this.orientation ? -22 : 0;
+    var offset_player = 0
+
+
+    var col_vert_body =
+      hit_y > this.y - 1 && hit_y < this.y + 32 ? true : false;
+    var col_hor_body =
+      hit_x + offset_player > this.x + offset &&
+      hit_x + offset_player < this.x + offset + 32
+        ? true
+        : false;
+    var col_vert = hit_y > this.y - 12 && hit_y < this.y ? true : false;
+    var col_hor =
+      hit_x + offset_player > this.x - 12 + offset &&
+      hit_x + offset_player < this.x + 12 + offset + 32
+        ? true
+        : false;
+
+
+        if (col_vert_body && col_hor_body){
+          return true
+        }
+      }    
+ 
+      
+    }
+
+  }
 
   check_player() {
     var offset = !this.orientation ? -22 : 0;
@@ -87,17 +121,8 @@ class enemy {
       console.log("horizontal");
     }
 
-    if (col_vert && col_hor && player.vy > 0) {
-      console.log("muerto");
-      this.kill();
-      player.jump();
-      player.jumping = true;
-      return;
-    } else {
-      if (col_vert_body && col_hor_body && player.vy <= 0) {
-        console.log("player muerto" + player.vy);
-        death();
-      }
+    if (col_vert && col_hor && !player.sliding) {
+     death()
     }
   }
 }
