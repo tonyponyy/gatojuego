@@ -154,11 +154,18 @@ function loop_level() {
       player.is_jetpack = false
       player.atacking = false
       if (keysDown[37]) {
-        move("left");
-        camera.side += 0.05;
+        if (!(player.sliding && player.orientation ===false)){
+          player.sliding = false  
+          move("left");
+          camera.side += 0.05;
+        }
+       
       } else if (keysDown[39]) {
+        if (!(player.sliding && player.orientation=== true)){
+        player.sliding = false  
         move("right");
         camera.side -= 0.05;
+        }
       }
       if (keysDown[38]) {
         if (
@@ -175,14 +182,23 @@ function loop_level() {
       if (keysDown[66]) {
           move("attack");
         }
-        if (keysDown[40] && player.vy !=0 && !player.sliding ) {
-          player.sliding=false
+        if (keysDown[40] ) {
+          if (player.vy !=0 && (player.vx < 3 && player.vx > -3)){
+            player.sliding=false
           player.killfalling = true
           player.vy = 8
           player.vx = 0
+          }else{
+            if ( !player.killfalling && !player.sliding && !(player.vx <3 && player.vx >-3)){
+              rect = player.orientation ?1:-1
+              player.vx =rect*8
+              player.vy= 3
+              player.sliding = true
+            }
+          }
         }
-        if (keysDown[40] && (player.vx >7 || player.vx< -7 ) && !player.killfalling) {
-          player.sliding = true
+        if (player.vx <3 && player.vx >-3){
+          player.sliding = false
         }
 
 

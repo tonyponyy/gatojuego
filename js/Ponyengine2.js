@@ -62,9 +62,9 @@ var transtion_settings = {
 };
 var constants = {
   SANDEVISTAN_TIME: 44,
-  CANVAS_WIDTH: 1920 / 4,
-  CANVAS_HEIGHT: 1080 / 4,
-  ZOOM: 2,
+  CANVAS_WIDTH: 1920 / 3,
+  CANVAS_HEIGHT: 1080 / 3,
+  ZOOM: 1,
   TILES_WIDTH: 48,
   TILES_HEIGHT: 48,
   MAP_COLUMNS: 40,
@@ -430,7 +430,9 @@ var paintPlayer = () => {
     if (player.cadencia_timer <= frameCounter){
     frame = (15 + (parseInt(frameCounter / 8) % 4)) * 32;
     x_force = player.orientation ? 15:-15
-    bomb = new particula(bomb_img, player.x, player.y, x_force, -10, 400, true,2);
+    rect_x = getRandomInt(-3,3)
+    rect_y = getRandomInt(-3,3)
+    bomb = new particula(bomb_img, player.x, player.y, x_force+rect_x, -10+rect_y, 400, true,2);
     particles_array.push(bomb);
     player.cadencia_timer = frameCounter+player.cadencia
   }
@@ -661,7 +663,7 @@ var move = (e) => {
       }
       break;
     case "jetpack":
-      if (player.canjetpack && player.jetpack_fuel > 0) {
+      if (player.jetpack_fuel > 0) {
         player.is_jetpack = true;
         player.jetpack -= 3;
         player.jetpack_fuel -= 0.1;
@@ -682,6 +684,10 @@ var move = (e) => {
         );
         //constructor(imagen, x,y, vx,vy, tiempo,solido)
         player.vy -= 12;
+        if (player.sliding){
+          rect = player.orientation ? 1:-1
+          player.vx = 12*rect
+        }
         particles_array.push(part);
         //eliminar después
       }
@@ -925,18 +931,19 @@ var fisicasplayer = () => {
   }
 
   //aplicamos inercia
-  if (!player.sliding){
-    friction = physics.friction;
-  }else{
-    friction = physics.sliding_friction
-  }
+
 
   if (!col_down) {
     friction = physics.friction_aire;
   } else {
+    friction = physics.friction;
     if (getTile(player.x, player.y + 32) == 33) {
       friction = physics.friction_hielo;
     }
+  }
+
+  if (player.sliding){
+    friction = physics.sliding_friction
   }
 
   if (player.vx > 0) {
