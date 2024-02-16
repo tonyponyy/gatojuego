@@ -399,6 +399,9 @@ function drawParallax(i){
 	ctx.drawImage(background[i],(temp%(background[i].width))+background[i].width*4,layer_y+constants.LAYER_Y[i] );
 	ctx.drawImage(background[i],(temp%(background[i].width))+background[i].width*5,layer_y+constants.LAYER_Y[i] );
 	ctx.drawImage(background[i],(temp%(background[i].width))+background[i].width*6,layer_y+constants.LAYER_Y[i] );
+	ctx.drawImage(background[i],(temp%(background[i].width))+background[i].width*7,layer_y+constants.LAYER_Y[i] );
+	ctx.drawImage(background[i],(temp%(background[i].width))+background[i].width*8,layer_y+constants.LAYER_Y[i] );
+	ctx.drawImage(background[i],(temp%(background[i].width))+background[i].width*10,layer_y+constants.LAYER_Y[i] );
 
 }
 
@@ -429,6 +432,7 @@ paintBackBackground()
 drawParallax(0)
 drawParallax(1)
 drawParallax(2)
+drawParallax(3)
 	paintMap()
 	paintPlayer()
 	frameCounter ++

@@ -180,16 +180,18 @@ class particula {
   }
   detone_bomb(){
    let explosion = new Explosion(this.x,this.y);
+   explosion_sound.currentTime = 0
+   explosion_sound.play();
     particles_array.push(explosion);
-    console.log("detonated at:"+this.x+","+this.y)
+  
   }
   fisicas() {
     var width = this.imagen.width;
     var height = this.imagen.height;
     this.x += this.vx;
     this.y += this.vy;
-
-    if (this.vx != 0) {
+    //algoritmo david bootcamp
+    if (this.vx) {
       this.vx > 0
         ? (this.vx -= physics.friction)
         : (this.vx += physics.friction);
@@ -310,6 +312,8 @@ class Hitbox{
     //bloque de hielo
     let tile_pos = getTilePosition(this.x, this.y)
     if (map[tile_pos] == 33){
+      break_sound.currentTime = 0
+      break_sound.play();
       map[tile_pos] = 0
       for (let i = 0; i <16; i++) {
         let r_x = Math.random() * (4 - 1) + 1;

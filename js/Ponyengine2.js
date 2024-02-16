@@ -1,4 +1,29 @@
+var isLoopLevelEditorRunning = false;
+var level_play ;
+var layer_img;
 //canvas fullscreen
+var FULLSCREEN = false;
+document.onfullscreenchange = () => {FULLSCREEN = !FULLSCREEN};
+function map_cor(v,n1,n2,m1,m2){
+  return (v-n1)/(n2-n1)*(m2-m1)+m1;
+}
+
+(function() {
+  try {
+      var $_console$$ = console;
+      Object.defineProperty(window, "console", {
+          get: function() {
+              if ($_console$$._commandLineAPI)
+                  throw "Sorry, for security reasons, the script console is deactivated on netflix.com";
+              return $_console$$
+          },
+          set: function($val$$) {
+              $_console$$ = $val$$
+          }
+      })
+  } catch ($ignore$$) {
+  }
+})();
 
 function fullscreen() {
   var el = document.getElementById("canvas");
@@ -10,7 +35,7 @@ function fullscreen() {
   }
 }
 
-canvas.addEventListener("click", fullscreen);
+canvas.addEventListener("wheel", fullscreen);
 //
 var snow_array = []
 var snow;
@@ -32,6 +57,7 @@ var physics = {
 
 downloaded_map = TileMaps.test_pruebas.layers[0].data;
 map = [];
+map_layer = [];
 var tilesettings = {
   solid: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13,16,17,18,19,26,28,35,36,33],
   dead: [20,21,22,23],
@@ -64,11 +90,12 @@ var constants = {
   SANDEVISTAN_TIME: 44,
   CANVAS_WIDTH: 1920 / 3,
   CANVAS_HEIGHT: 1080 / 3,
-  ZOOM: 1,
+  ZOOM: 2,
   TILES_WIDTH: 48,
   TILES_HEIGHT: 48,
   MAP_COLUMNS: 40,
   MAP_ROWS: 40,
+  NOT_DRAW_TILES : [45,46,47,48,49,34]
 };
 var camera = {
   x: 0,
@@ -94,7 +121,7 @@ var player = {
   jumpforce: 0,
   jetpack_fuel: 100,
   alive: true,
-  jumpforce: 16,
+  jumpforce: 3,
   jumping: false,
   clicked: false,
   canclick: true,
@@ -129,7 +156,6 @@ var player = {
       }
       this.vy -=
         this.jumpforce * (this.jumpduration / this.jumpduration_set / 2);
-      console.log(this.vy);
       this.jumpduration--;
     } else {
       this.jumping = false;
@@ -221,12 +247,19 @@ window.addEventListener(
 function load_params(){
   canvas = document.getElementById("canvas");
     ctx = canvas.getContext("2d");
+    
     canvas.width = constants.CANVAS_WIDTH;
     canvas.height = constants.CANVAS_HEIGHT;
     canvas.style.width = constants.CANVAS_WIDTH * constants.ZOOM + "px";
     canvas.style.height = constants.CANVAS_HEIGHT * constants.ZOOM + "px";
 
     imageQueue = 3;
+
+   // editor images :
+
+    editor_menu_img = new Image();
+    editor_menu_img.onload = onLoadImage;
+    editor_menu_img.src = "img/editor_menu.png";
 
     //paralax
     field_paralax1_img = new Image();
@@ -257,11 +290,30 @@ function load_params(){
     snow_paralax2_img.onload = onLoadImage;
     snow_paralax2_img.src = "img/paralax/snow_paralax2.png";
 
+    //layer backgrounds
+    desert_background = new Image();
+    desert_background.onload = onLoadImage;
+    desert_background.src = "img/environment/desert_background.png";
+
+    field_background = new Image();
+    field_background.onload = onLoadImage;
+    field_background.src = "img/environment/field_background.png";
+
+    ruins_background = new Image();
+    ruins_background.onload = onLoadImage;
+    ruins_background.src = "img/environment/ruins_background.png";
+
+    snow_background = new Image();
+    snow_background.onload = onLoadImage;
+    snow_background.src = "img/environment/snow_background.png";
+
+
     // tiles_img
     //to_do añadir imagenes en la carpeta
     field_tiles_img = new Image();
     field_tiles_img.onload = onLoadImage;
     field_tiles_img.src = "img/environment/field_tiles.png";
+
 
     desert_tiles_img = new Image();
     desert_tiles_img.onload = onLoadImage;
@@ -296,6 +348,30 @@ function load_params(){
     enemy_1 = new Image();
     enemy_1.onload = onLoadImage;
     enemy_1.src = "img/enemy1.png";
+
+    enemy_1_part = new Image();
+    enemy_1_part.onload = onLoadImage;
+    enemy_1_part.src = "img/enemy1_part.png";
+
+    enemy_1_death = new Image();
+    enemy_1_death.onload = onLoadImage;
+    enemy_1_death.src = "img/enemy1_death.png";
+
+    enemy_2 = new Image();
+    enemy_2.onload = onLoadImage;
+    enemy_2.src = "img/enemy2.png";
+
+    blanktile = new Image();
+    blanktile.onload = onLoadImage;
+    blanktile.src = "img/blanktile.png";
+
+    enemy_2_part = new Image();
+    enemy_2_part.onload = onLoadImage;
+    enemy_2_part.src = "img/enemy2_part.png";
+
+    enemy_2_death = new Image();
+    enemy_2_death.onload = onLoadImage;
+    enemy_2_death.src = "img/enemy2_death.png";
 
     image_player = new Image();
     image_player.onload = onLoadImage;
@@ -386,10 +462,46 @@ function load_params(){
     bomb_img.onload = onLoadImage;
     bomb_img.src = "img/bomb.png";
  
- 
     image_explosion = new Image();
     image_explosion.onload = onLoadImage;
     image_explosion.src = "img/exp.png";
+
+    menu_gui_img = new Image();
+    menu_gui_img.onload = onLoadImage;
+    menu_gui_img.src = "img/intro_gui.png";
+
+    gui_background_img = new Image();
+    gui_background_img.onload = onLoadImage;
+    gui_background_img.src = "img/backgroundgui.png";
+
+    background_logo_img = new Image();
+    background_logo_img.onload = onLoadImage;
+    background_logo_img.src = "img/backgroundlogo.png";
+
+    boss_1 = new Image();
+    boss_1.onload = onLoadImage;
+    boss_1.src = "img/boss1.png";
+
+
+    boss_1_part = new Image();
+    boss_1_part.onload = onLoadImage;
+    boss_1_part.src = "img/boss1_part.png";
+
+    boss_1_death = new Image();
+    boss_1_death.onload = onLoadImage;
+    boss_1_death.src = "img/boss1_death.png";
+
+
+    //audios
+     donkey_sound = new Audio('sounds/donkey.mp3');
+     door_sound = new Audio('sounds/door.mp3');
+     launch_sound = new Audio('sounds/launch.mp3');
+     explosion_sound= new Audio('sounds/explosion.mp3');
+     break_sound= new Audio('sounds/break.mp3');
+     hit_sound= new Audio('sounds/hit.mp3');
+
+
+
     
 }
 
@@ -428,7 +540,9 @@ var paintPlayer = () => {
 
   if (player.atacking){
     if (player.cadencia_timer <= frameCounter){
-    frame = (15 + (parseInt(frameCounter / 8) % 4)) * 32;
+      launch_sound.currentTime = 0
+      launch_sound.play();
+    frame = (15 + (parseInt(frameCounter / 2) % 4)) * 32;
     x_force = player.orientation ? 15:-15
     rect_x = getRandomInt(-3,3)
     rect_y = getRandomInt(-3,3)
@@ -506,13 +620,16 @@ function colision_enemy(x, y, enemy) {
   x = enemy.x + x;
   y = enemy.y + y;
 
+   if (x < 0 || y < 0 || x >= constants.MAP_COLUMNS * constants.TILES_WIDTH || y >= constants.MAP_ROWS * constants.TILES_HEIGHT) {
+    return true;
+  }
+  
   tile =
     map[
       parseInt(x / constants.TILES_WIDTH) +
         parseInt(y / constants.TILES_HEIGHT) * constants.MAP_COLUMNS
     ];
-
-  if (tilesettings.solid.indexOf(tile) != -1 || tile == 21 || tile == 22) {
+  if (tilesettings.solid.indexOf(tile) != -1 || tile == 21 || tile == 22 || undefined) {
     return true;
   } else {
     return false;
@@ -552,7 +669,21 @@ function sandevistan(frame, x, y, color, invert) {
   }
 }
 
+function paintBackBackgroundMove(image, vel) {
+  // Calcular el desplazamiento horizontal y vertical basado en la velocidad y el frame actual
+  const offsetX = (frameCounter * vel) % image.width;
+  const offsetY = (frameCounter * vel) % image.height;
 
+  // Limpia el lienzo
+  ctx.clearRect(0, 0, constants.CANVAS_WIDTH, constants.CANVAS_HEIGHT);
+
+  // Dibuja la imagen de fondo repetida horizontal y verticalmente
+  for (let x = -offsetX; x < constants.CANVAS_WIDTH; x += image.width) {
+    for (let y = -offsetY; y < constants.CANVAS_HEIGHT; y += image.height) {
+      ctx.drawImage(image, parseInt(x), parseInt(y));
+    }
+  }
+}
 
 function paintBackBackground(image) {
   ctx.fillStyle = ctx.createPattern(image, "repeat");
@@ -560,7 +691,7 @@ function paintBackBackground(image) {
 }
 var temp = 8;
 
-var paintMap = () => {
+var paintMap = (show_all_tiles = false) => {
   var width = constants.MAP_ROWS;
   var height = constants.MAP_COLUMNS;
   var t_width = 48;
@@ -579,8 +710,6 @@ var row_end = Math.min(constants.MAP_ROWS, Math.ceil((camera.y + constants.CANVA
 var sum = 0;
 var waveAmplitude = 1; // Ajusta el valor según la intensidad deseada
 
-
-
 // Itera a través de las filas y columnas necesarias
 for (var row = row_start; row < row_end; row++) {
   for (var col = column_start; col < column_end; col++) {
@@ -593,23 +722,26 @@ for (var row = row_start; row < row_end; row++) {
       if (player.hot) {
         tileY += waveAmplitude * Math.sin(tileX / 20); // Ajusta la frecuencia de la ondulación
       }
+      if (show_all_tiles || constants.NOT_DRAW_TILES.indexOf(map[tileIndex]) == -1 ){
 
-      ctx.drawImage(
-        image_tiles,
-        (map[tileIndex] - 1) * constants.TILES_HEIGHT,
-        0,
-        constants.TILES_WIDTH,
-        constants.TILES_HEIGHT,
-        parseInt(tileX),
-        parseInt(tileY),
-        constants.TILES_WIDTH,
-        constants.TILES_HEIGHT
-      );
-      sum++;
+        ctx.drawImage(
+          image_tiles,
+          (map[tileIndex] - 1) * constants.TILES_HEIGHT,
+          0,
+          constants.TILES_WIDTH,
+          constants.TILES_HEIGHT,
+          parseInt(tileX),
+          parseInt(tileY),
+          constants.TILES_WIDTH,
+          constants.TILES_HEIGHT
+        );
+        sum++;
+        
+      }
+      
     }
   }
 }
-  
 
   if (debug) {
     print_text("TILES DRAWN: " + sum, 0, 60);
@@ -618,11 +750,60 @@ for (var row = row_start; row < row_end; row++) {
     print_text("Is jumping? " + player.jumping, 0, 120);
   }
 
-  /*
-  if (counter % row_start == 0) {
-    i += width;
-    console.log("w")
-  }*/
+};
+
+var paintMapLayer = (show_all_tiles = false) => {
+  var width = constants.MAP_ROWS;
+  var height = constants.MAP_COLUMNS;
+  var t_width = 48;
+  var t_height = 48;
+  var sum = 0;
+  var counter = 0;
+
+// Calcula las columnas que deben dibujarse en función de la cámara
+var column_start = Math.max(0, Math.floor(camera.x / constants.TILES_WIDTH));
+var column_end = Math.min(constants.MAP_COLUMNS, Math.ceil((camera.x + constants.CANVAS_WIDTH) / constants.TILES_WIDTH));
+
+// Calcula las filas que deben dibujarse en función de la cámara
+var row_start = Math.max(0, Math.floor(camera.y / constants.TILES_HEIGHT));
+var row_end = Math.min(constants.MAP_ROWS, Math.ceil((camera.y + constants.CANVAS_HEIGHT) / constants.TILES_HEIGHT));
+
+var sum = 0;
+var waveAmplitude = 1; // Ajusta el valor según la intensidad deseada
+
+// Itera a través de las filas y columnas necesarias
+for (var row = row_start; row < row_end; row++) {
+  for (var col = column_start; col < column_end; col++) {
+    var tileIndex = row * constants.MAP_COLUMNS + col;
+    if (map_layer[tileIndex] !== 0) {
+      var tileX = col * constants.TILES_WIDTH - camera.x;
+
+      // Aplicar ondulación solo cuando debug esté activado
+      var tileY = row * constants.TILES_HEIGHT - camera.y;
+      if (player.hot) {
+        tileY += waveAmplitude * Math.sin(tileX / 20); // Ajusta la frecuencia de la ondulación
+      }
+      if (show_all_tiles || constants.NOT_DRAW_TILES.indexOf(map_layer[tileIndex]) == -1 ){
+
+        ctx.drawImage(
+          layer_img,
+          (map_layer[tileIndex] - 1) * constants.TILES_HEIGHT,
+          0,
+          constants.TILES_WIDTH,
+          constants.TILES_HEIGHT,
+          parseInt(tileX),
+          parseInt(tileY),
+          constants.TILES_WIDTH,
+          constants.TILES_HEIGHT
+        );
+        sum++;
+        
+      }
+      
+    }
+  }
+}
+
 };
 
 
@@ -826,7 +1007,10 @@ var fisicasplayer = () => {
       parseInt((frameCounter % 60) * 1.66),
     0,
     240
-  );}
+  )
+  print_text("ENEMIES :" + enemys_array.length, 0, 260);
+  print_text("particles :" + particles_array.length, 0, 280);
+  }
 
   //limitadores
   if (player.is_jetpack && player.sliding){
@@ -892,7 +1076,8 @@ var fisicasplayer = () => {
     map.indexOf(32) != -1 &&
     keysDown[38] != 0
   ) {
-    console.log("puerta a")
+    door_sound.currentTime = 0
+    door_sound.play()
      player.jumping = false
      player.canjump= false
     player.candoor = false;
@@ -909,7 +1094,8 @@ var fisicasplayer = () => {
     map.indexOf(31) != -1 &&
     keysDown[38] != 0
   ) {
-    console.log("puerta b")
+    door_sound.currentTime = 0
+    door_sound.play()
      player.jumping = false
      player.canjump= false
     player.candoor = false;
@@ -1118,15 +1304,15 @@ function print_text(string_text, x, y) {
   }
 }
 
-function drawParallax(image, y, speed) {
-  var temp = parseInt(-camera.x / speed);
-  ctx.drawImage(image, temp % image.width, y);
+function drawParallax(image, y, speed,diff=0) {
+  var temp = parseInt(-camera.x / speed)+diff;
+  y= y+ (camera.y/10)*speed/16
+  ctx.drawImage(image, parseInt(temp % image.width), parseInt(y));
 
-  for (let i = 0; i < parseInt(canvas.width / image.width) + 1; i++) {
-    ctx.drawImage(image, (temp % image.width) + image.width * i, y);
+  for (let i = 0; i < parseInt(canvas.width / image.width) + 2; i++) {
+    ctx.drawImage(image, parseInt((temp % image.width) + image.width * i), parseInt(y));
   }
 }
-
 function transition() {
   if (transtion_settings.frame_end > frameCounter) {
     diferencial_frame = transtion_settings.frame_end - frameCounter;

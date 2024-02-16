@@ -7,6 +7,7 @@ class GameLoad {
         this.paralax1_img = field_paralax1_img;
         this.paralax2_img = field_paralax2_img;
         this.enviroment ="FIELD"
+        this.layer_img = field_background;
         break;
       case 2:
         //desierto
@@ -14,6 +15,7 @@ class GameLoad {
         this.paralax1_img = desert_paralax1_img;
         this.paralax2_img = desert_paralax2_img;
         this.enviroment ="DESERT"
+        this.layer_img = desert_background
         break;
       case 3:
         //ruinas
@@ -21,6 +23,7 @@ class GameLoad {
         this.paralax1_img = ruins_paralax1_img;
         this.paralax2_img = ruins_paralax2_img;
         this.enviroment ="RUINS"
+        this.layer_img = ruins_background
         break;
       case 4:
         //nieve
@@ -28,12 +31,14 @@ class GameLoad {
         this.paralax1_img = snow_paralax1_img;
         this.paralax2_img = snow_paralax2_img;
         this.enviroment ="SNOW"
+        this.layer_img = snow_background
         break;
       default:
         this.tiles_img = field_tiles_img;
         this.paralax1_img = field_paralax2_img;
         this.paralax2_img = field_paralax2_img;
         this.enviroment ="FIELD"
+        this.layer_img = field_background;
         break;
     }
     switch (sky) {

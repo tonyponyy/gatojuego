@@ -2,32 +2,76 @@ var scene = "splash"
 var hitbox_array = []
 var game_load;
 
+//demo
 
-
-function select_scene(){
+function select_scene( from_editor = false){
     if (scene == "splash"){
         fadeOut()
         splash_escene();
     }
+    if (scene == "game_gui"){
+      fadeOut()
+      game_gui();
+  }
 
     if (scene == "level"){
         startGame();
         loop_level();
     }
+
+    if (scene == "level_editor"){
+      resize(constants.CANVAS_WIDTH*2,constants.CANVAS_HEIGHT*2,1) ;
+      start_level_editor(from_editor);
+  }
    
   }
-  
+
+var scene_splash = true;  
 var splash_escene =() =>{
+ 
+  if (scene_splash){
+    setTimeout(function() {
+      change_scene("game_gui")
+    }, 400);
+  }
+  scene_splash = false;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    paintBackBackgroundMove(background_logo_img,0.5);
     ctx.drawImage(splash_img,0, 0); 
-    print_text("PULSA *(UNO)* PARA INICIAR JUEGO", 20,  130);
     transition()
-    press_key(49, function(){change_scene("level")})
     frameCounter++;
     if (scene == "splash"){
         party_settings.animation_loop = window.requestAnimationFrame(splash_escene);
     }
 }
+
+
+var game_gui =() =>{
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  paintBackBackgroundMove(gui_background_img,0.5);
+  ctx.drawImage(menu_gui_img,0, 0); 
+  
+  print_text("escena gui", 80,  130);
+  transition()
+  
+
+  press_key(49, function(){
+  //demo : 
+  map_string ="0$791,44,0$198,17,18,16,0$35,14,2$2,33$2,15,0$191,14,2$2,1$3,33$2,1,15,0$189,14,1$6,33$2,1$2,15,37,0$186,14,1$2,13$2,1$2,13,33$2,13,1$2,16,0$185,14,1$2,10,32,0,9,10,23,33$2,22,9,10,0$50,33,0$132,14,2$2,1$4,3,0,9,10,23,33$2,22,9,10,0$50,33,0$131,14,1$7,10,0,9,10,23,33$2,22,9,10,20$11,0$39,33,0$130,14,1$8,10,0,12,11,23,33$2,22,9,1,18$10,16,0$29,33,0$9,33,0$95,14,3,0$32,14,1$9,10,0$4,33$2,0,12,11,0$10,27,0$18,33,0$10,33,0$9,33,0$94,14,1$2,15,0$30,14,1$10,10,0$4,33$2,0$2,26,0$10,27,0$10,33,0$7,33,0$10,33,0$9,33,0$10,14,2,15,0$80,14,1$4,2,15,0$13,34,31,0$4,39,0$3,37,49,46,45,14,1$11,10,0$4,33$2,0,24,26,0$6,39,0$2,24,27,0$2,37,0$2,39,0,45$2,0,33,0$5,39,0,33,0$7,38$2,0,33,0$3,45$3,39,45,0,33,0$4,45$3,0$2,14,1$3,15,0$3,37,0$7,41,0$6,39,0$7,37,0$14,45$12,0$25,14,1$7,15,0$2,41,0$2,43,0$6,2$7,3,20$2,4,2$15,1,2$69,1$5,2$78,1$9,2$12,1$8,2$2,1$590" 
+  level_play = new GameLoad(getRandomInt(1, 5), getRandomInt(1, 5), 2, 50, map_string, 20, 200);
+    change_scene("level")
+  })
+  press_key(50, function(){change_scene("level_editor")})
+  frameCounter++;
+  if (scene == "game_gui"){
+      party_settings.animation_loop = window.requestAnimationFrame(game_gui);
+  }
+}
+
+
+
+
+
 
 function change_scene(scene_string){
     scene = scene_string
@@ -41,22 +85,16 @@ function getRandomInt(min, max) {
   }
 
 var startGame = () => {
-  map_string = '0$684,36$6,0$54,24,0$22,44,0$9,27,28,27,26,29,26$2,6,0$15,35$8,0$16,7,0$39,8,0$2,19,0$41,30,0$8,22,4,0$29,19,0$8,22,9,0$38,22,9,0$24,43,0,42,0$4,19,0$6,22,9,34,0$16,39,0$6,4,2,3,0$7,31,0$3,22,9,15,0$14,43,4,3,0,4,16,0$2,17,1$3,16,0$4,14,18,16,0$3,22,9,1,15,0$13,4,1,10,0,7,0$4,12,13,11,0$4,14,10,23,0$4,22,9,1$2,15,0,32,0$3,37,24,25,0$4,9,1,10,0,7,0$4,21$3,0$3,14,1,10,23,0$4,22,9,1$3,2$7,3,0,38,0$2,9,1,10,20,7,20,6,41,0$5,40,14,1$2,10,23,0$4,22,9,1$11,2$4,1$3,2,1,2,1,2$17,1$321'
-  map_string = "0$34,7,0$33,26,0$2,24,0$2,8,0$19,27,0,24,0$3,36$13,0$3,7,0$7,36$15,0$14,30,0$2,7,0$17,24,0$20,22,7,0$4,35$12,33$2,0$18,30,0,22,7,0$17,35,26$3,35$2,0,35$5,0$7,30,0,22,7,0$38,22,7,0$24,36$11,0,30,0,22,7,0$17,36$6,0$15,22,7,0$36,30,0,22,7,0$12,35$3,24,0$22,22,7,0$15,35,27,35,27,35,27,35$2,0$9,24,0$3,30,0,22,8,0$24,35$3,27,35,27,35$4,26,35$3,0$385,6,0$39,7,0$39,7,0$39,7,0$39,7,0$39,7,0$39,7,0$39,7,0$39,7,0$31,14,2,15,0$4,4,1,3,0$8,14,2,15,0$7,2$12,1$3,2$15,1$3,2$7,1$240" 
-  map_string = "0$6,33,0$4,33,0$4,33,0$6,33,0$5,33,0$3,33,0,33$2,0$5,32,0$3,33,0$4,33,0$4,33,0$6,33,0$5,33,0$3,33,0,33$2,0$3,2$17,0$6,33,0$5,33,0$3,33,0$2,33,0$20,2$7,0$5,33,0$3,33,0$2,33,0$27,2$6,0$3,33,0$2,33,0$33,2$4,0$2,33,0$37,2$3,33$979,33,0$8,33,0$30,33,0$8,33,0$30,33,0$8,33,0$25,33,0$4,33,0$3,33,0$4,33,0$5,33,0$19,33,0$4,33,0$3,33,0$4,33,0$5,33,0$16,33,0$2,33,0$4,33,0$3,33,0$4,33,0$5,33,0$7,33,0$8,33,0$2,33,0$4,33,0$3,33,0$4,33,0$5,33,0$4,33,0$2,33,34,0$3,31,0$3,33,0$2,33,0$4,33,0$3,33,0$4,33,0$5,33,0,44,0$2,33,0$2,33,2$40" 
-  // 60 ancho x 40
-  map_string ="0$2009,14,3,0$55,39,0,14,1,10,0$51,14,2$5,1$2,10,0$50,14,1$8,10,0$31,34,0$17,14,1$10,15,0$31,31,0$11,37,0$3,14,1$12,15,0$6,33$15,0$3,32,0$2,2$19,1$14,2$27" 
-  //200 ancho x 20
-  map_string ="0$791,44,0$198,17,18,16,0$35,14,2$2,33$2,15,0$191,14,2$2,1$3,33$2,1,15,0$189,14,1$6,33$2,1$2,15,37,0$186,14,1$2,13$2,1$2,13,33$2,13,1$2,16,0$185,14,1$2,10,31,0,9,10,23,33$2,22,9,10,0$50,33,0$132,14,2$2,1$4,3,0,9,10,23,33$2,22,9,10,0$50,33,0$131,14,1$7,10,0,9,10,23,33$2,22,9,10,20$11,0$39,33,0$130,14,1$8,10,0,12,11,23,33$2,22,9,1,18$10,16,0$29,33,0$9,33,0$95,14,3,0$32,14,1$9,10,0$4,33$2,0,12,11,0$10,27,0$18,33,0$10,33,0$9,33,0$94,14,1$2,15,0$30,14,1$10,10,0$4,33$2,0$2,26,0$10,27,0$10,33,0$7,33,0$10,33,0$9,33,0$10,14,2,15,0$80,14,1$4,2,15,0$13,34,32,0$4,39,0$3,37,0$3,14,1$11,10,0$4,33$2,0,24,26,0$6,39,0$2,24,27,0$2,37,0$2,39,0$4,33,0$5,39,0,33,0$7,38$2,0,33,0$6,39,0$2,33,0$9,14,1$3,15,0$3,37,0$7,41,0$6,39,0$7,37,0$51,14,1$7,15,0$2,41,0$2,43,0$6,2$7,3,20$2,4,2$15,1,2$69,1$5,2$78,1$9,2$12,1$8,2$2,1$590" 
-  map_string ="0$791,44,0$198,17,18,16,0$35,14,2$2,33$2,15,0$191,14,2$2,1$3,33$2,1,15,0$189,14,1$6,33$2,1$2,15,37,0$186,14,1$2,13$2,1$2,13,33$2,13,1$2,16,0$185,14,1$2,10,32,0,9,10,23,33$2,22,9,10,0$50,33,0$132,14,2$2,1$4,3,0,9,10,23,33$2,22,9,10,0$50,33,0$131,14,1$7,10,0,9,10,23,33$2,22,9,10,20$11,0$39,33,0$130,14,1$8,10,0,12,11,23,33$2,22,9,1,18$10,16,0$29,33,0$9,33,0$95,14,3,0$32,14,1$9,10,0$4,33$2,0,12,11,0$10,27,0$18,33,0$10,33,0$9,33,0$94,14,1$2,15,0$30,14,1$10,10,0$4,33$2,0$2,26,0$10,27,0$10,33,0$7,33,0$10,33,0$9,33,0$10,14,2,15,0$80,14,1$4,2,15,0$13,34,31,0$4,39,0$3,37,45,0,45,14,1$11,10,0$4,33$2,0,24,26,0$6,39,0$2,24,27,0$2,37,0$2,39,0,45$2,0,33,0$5,39,0,33,0$7,38$2,0,33,0$3,45$3,39,45,0,33,0$4,45$3,0$2,14,1$3,15,0$3,37,0$7,41,0$6,39,0$7,37,0$14,45$12,0$25,14,1$7,15,0$2,41,0$2,43,0$6,2$7,3,20$2,4,2$15,1,2$69,1$5,2$78,1$9,2$12,1$8,2$2,1$590" 
-  // constructor(environment, sky, weather, fuel, map_tiles, height, width)
-
-  game_load = new GameLoad(getRandomInt(1, 5), getRandomInt(1, 5), 2, 50, map_string, 20, 200);
+  //map_string ="0$791,44,0$198,17,18,16,0$35,14,2$2,33$2,15,0$191,14,2$2,1$3,33$2,1,15,0$189,14,1$6,33$2,1$2,15,37,0$186,14,1$2,13$2,1$2,13,33$2,13,1$2,16,0$185,14,1$2,10,32,0,9,10,23,33$2,22,9,10,0$50,33,0$132,14,2$2,1$4,3,0,9,10,23,33$2,22,9,10,0$50,33,0$131,14,1$7,10,0,9,10,23,33$2,22,9,10,20$11,0$39,33,0$130,14,1$8,10,0,12,11,23,33$2,22,9,1,18$10,16,0$29,33,0$9,33,0$95,14,3,0$32,14,1$9,10,0$4,33$2,0,12,11,0$10,27,0$18,33,0$10,33,0$9,33,0$94,14,1$2,15,0$30,14,1$10,10,0$4,33$2,0$2,26,0$10,27,0$10,33,0$7,33,0$10,33,0$9,33,0$10,14,2,15,0$80,14,1$4,2,15,0$13,34,31,0$4,39,0$3,37,49,46,45,14,1$11,10,0$4,33$2,0,24,26,0$6,39,0$2,24,27,0$2,37,0$2,39,0,45$2,0,33,0$5,39,0,33,0$7,38$2,0,33,0$3,45$3,39,45,0,33,0$4,45$3,0$2,14,1$3,15,0$3,37,0$7,41,0$6,39,0$7,37,0$14,45$12,0$25,14,1$7,15,0$2,41,0$2,43,0$6,2$7,3,20$2,4,2$15,1,2$69,1$5,2$78,1$9,2$12,1$8,2$2,1$590" 
+  //game_load = new GameLoad(getRandomInt(1, 5), getRandomInt(1, 5), 2, 50, map_string, 20, 200);
+  game_load = level_play;
   constants.MAP_COLUMNS = game_load.width;
   constants.MAP_ROWS = game_load.height;
   map = [...game_load.map_tiles];
+  map_layer = generate_layer(map)
   //setting_img
   image_fondo = game_load.sky_img;
+  layer_img = game_load.layer_img;
   image_tiles = game_load.tiles_img;
   paralax1 = game_load.paralax1_img;
   paralax2 = game_load.paralax2_img;
@@ -66,14 +104,29 @@ var startGame = () => {
   party_settings.cleared = false;
   party_settings.time_finish = false;
   party_settings.animation_loop = null;
-
+  enemys_array = []
+  //refactorizar
   for (let i = 0; i < map.length; i++) {
     if(map[i] == 45){
       enemy_coordenades = getTileCordenades(i);
       orientation = Math.random() > 0.5 ? true : false;
-      enemy_created = new enemy(1, enemy_coordenades.x, enemy_coordenades.y+17, orientation, 0.3);
+      enemy_created = new enemy(1, enemy_coordenades.x, enemy_coordenades.y+17, orientation, 2,32);
       enemys_array.push(enemy_created)
     }
+    if(map[i] == 49){
+      enemy_coordenades = getTileCordenades(i);
+      orientation = Math.random() > 0.5 ? true : false;
+      enemy_created = new enemy(2, enemy_coordenades.x, enemy_coordenades.y+17, orientation, 1,128);
+      enemys_array.push(enemy_created)
+    }
+
+    if(map[i] == 46){
+      enemy_coordenades = getTileCordenades(i);
+      orientation = Math.random() > 0.5 ? true : false;
+      enemy_created = new enemy(3, enemy_coordenades.x, enemy_coordenades.y+17, orientation, 0.5,32);
+      enemys_array.push(enemy_created)
+    }
+
     
   }
   
@@ -106,10 +159,18 @@ function set_player_start_level(jetpack_fuel,player_cor){
 
 //pv = 145
 function loop_level() {
+  if (particles_array.length > 1000) {
+    const elementosExcedentes = particles_array.length - 1000;
+    particles_array.splice(0,elementosExcedentes);
+  }
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     paintBackBackground(image_fondo);
     drawParallax(paralax1, 105, 12);
     drawParallax(paralax2, 145, 8);
+    drawParallax(paralax2, 200, 6,-120);
+    drawParallax(paralax2, 260, 4,-60);
+    console.log("paintmaplayer")
+    paintMapLayer();
     paintMap();
     if (game_load.enviroment == "SNOW"){
     snow.show_snow()
@@ -133,12 +194,16 @@ function loop_level() {
     }
     
     for (let i = 0; i < enemys_array.length; i++) {
-      enemys_array[i].mostrar();
-      enemys_array[i].move();
-      enemys_array[i].check_player();
-      if (enemys_array[i].check_colision() === true){
+      let enemy = enemys_array[i]
+      enemy.move();
+      if (enemy.x > camera.x-200 && enemy.x < camera.x+ constants.CANVAS_WIDTH*constants.ZOOM*2 ){
+      enemy.mostrar();
+      enemy.check_player();
+      if (enemy.check_colision() === true){
+        enemy.kill()
         enemys_array[i] = false
       }
+    }
     }
         //borramos las hitbox que se han puesto a false
 
@@ -201,9 +266,6 @@ function loop_level() {
           player.sliding = false
         }
 
-
-        
-
     }
   
     if (player.y < 0) {
@@ -229,6 +291,9 @@ function loop_level() {
       min = format_time(parseInt(frameCounter / 3600))
       sec = format_time(parseInt((frameCounter / 60) % 60))
       sec_dec = format_time(parseInt((frameCounter % 60) * 1.66))
+      if (isLoopLevelEditorRunning){
+        print_text("TEST MODE",0, 35);  
+      }
     print_text(min +":" +sec + ":" +sec_dec,0, 5);
     show_jetpack_bar(0,15)
 
@@ -254,9 +319,19 @@ function loop_level() {
       print_text("back to menu", menu_x + 20, menu_y + 120);
     }
     //pulsar r para reset partida
-    if (keysDown[82]) {
-      party_settings.restart = true;
+    if (!isLoopLevelEditorRunning){
+        if (keysDown[82]) {
+          party_settings.restart = true;
+          console.log("reset from level")
+        }
+      }else{
+        if (keysDown[82]) {
+          console.log("back to editor")
+          scene = "level_editor"
+          select_scene(true);
+        }
     }
+
     press_key(49, function(){change_scene("splash")})
     frameCounter++;
     transition();
